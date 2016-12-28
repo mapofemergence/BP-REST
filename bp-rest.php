@@ -48,5 +48,12 @@ function bp_rest_api_endpoints() {
 		$controller = new BP_REST_Activity_Controller();
 		$controller->register_routes();
 	}
+
+	if ( bp_is_active( 'members' ) ) {
+		require_once( dirname( __FILE__ ) . '/includes/bp-members/classes/class-bp-members-endpoints.php' );
+		// Register General Member Type Endpoint
+		$controller = new BP_REST_Members_Controller();
+		$controller->register_routes();
+	}
 }
 add_action( 'bp_rest_api_init', 'bp_rest_api_endpoints' );
