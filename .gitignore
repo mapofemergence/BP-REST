@@ -3,5 +3,8 @@
 /node_modules
 /npm-debug.log
 
+# WIP files
+/_
+
 # Operating system specific files
 .DS_Store
