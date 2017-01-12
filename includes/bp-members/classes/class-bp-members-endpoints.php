@@ -48,6 +48,45 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
             ),
             'schema' => array($this, 'get_public_item_schema'),
         ));
+
+
+        register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
+            array(
+                'methods'         => WP_REST_Server::READABLE,
+                'callback'        => array( $this, 'get_item' ),
+                'permission_callback' => array( $this, 'get_item_permissions_check' ),
+                'args'            => array(
+                    'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+                ),
+            ),
+
+            // Uncomment them while go finishing it.
+            // array(
+            //     'methods'         => WP_REST_Server::EDITABLE,
+            //     'callback'        => array( $this, 'update_item' ),
+            //     'permission_callback' => array( $this, 'update_item_permissions_check' ),
+            //     'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
+            // ),
+            //
+
+            /**
+             * Redirect to WP Rest User Endpoint.
+             */
+            array(
+                'methods' => WP_REST_Server::DELETABLE,
+                'callback' => array( 'WP_REST_Users_Controller', 'delete_item' ),
+                'permission_callback' => array( 'WP_REST_Users_Controller', 'delete_item_permissions_check' ),
+                'args' => array(
+                    'force'    => array(
+                        'default'     => false,
+                        'description' => __( 'Required to be true, as resource does not support trashing.' ),
+                    ),
+                    'reassign' => array(),
+                ),
+            ),
+            'schema' => array( 'WP_REST_Users_Controller', 'get_public_item_schema' ),
+        ) );
+
     }
 
     /**
@@ -71,6 +110,53 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
                     'description' => __('A unique alphanumeric ID for the object.', 'buddypress'),
                     'readonly' => true,
                     'type' => 'integer',
+                ),
+                'username'    => array(
+                    'description' => __( 'Login name for the resource.', 'buddypress' ),
+                    'type'        => 'string',
+                    'context'     => array( 'embed', 'edit', 'view' ),
+                    'required'    => true,
+                    'arg_options' => array(
+                        'sanitize_callback' => 'sanitize_user',
+                    ),
+                ),
+                'name'        => array(
+                    'description' => __( 'Display name for the resource.' ),
+                    'type'        => 'string',
+                    'context'     => array( 'embed', 'view', 'edit' ),
+                    'arg_options' => array(
+                        'sanitize_callback' => 'sanitize_text_field',
+                    ),
+                ),
+                'fullname'  => array(
+                    'description' => __( 'Full First name for the resource.' ),
+                    'type'        => 'string',
+                    'context'     => array( 'embed', 'edit', 'view' ),
+                    'arg_options' => array(
+                        'sanitize_callback' => 'sanitize_text_field',
+                    ),
+                ),
+                'registered_date' => array(
+                    'description' => __( 'Registration date for the resource.' ),
+                    'type'        => 'string',
+                    'format'      => 'date-time',
+                    'context'     => array( 'edit' ),
+                    'readonly'    => true,
+                ),
+                'nickname'    => array(
+                    'description' => __( 'The nickname for the resource.' ),
+                    'type'        => 'string',
+                    'context'     => array( 'embed', 'edit', 'view' ),
+                    'arg_options' => array(
+                        'sanitize_callback' => 'sanitize_text_field',
+                    ),
+                ),
+                'link'        => array(
+                    'description' => __( 'Member Profile URL to the resource.' ),
+                    'type'        => 'string',
+                    'format'      => 'uri',
+                    'context'     => array( 'embed', 'view', 'edit' ),
+                    'readonly'    => true,
                 )
             )
         );
@@ -158,11 +244,10 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
      */
     public function get_items($request) {
         global $bp, $wpdb;
+
         $args = array(
             'type' => $request['type'],
             'user_id' => false,
-           // 'exclude' => $request['exclude'],
-           // 'include' => $request['include'],
             'search_terms' => $request['search'],
             'member_type' => '',
             'per_page' => $request['per_page'],
@@ -173,6 +258,14 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
             'count_total' => 'count_query'
         );
 
+        if(!empty($request['exclude'])) {
+            $args['exclude'] = $request['exclude'];
+        }
+
+        if(!empty($request['include'])) {
+            $args['include'] = $request['include'];
+        }
+
         if ($this->member_type != "") {
             $args['member_type'] = $this->member_type;
         }
@@ -180,9 +273,9 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
         if (!empty($request['user_id'])) {
             $args['user_id'] = $request['user_id'];
         }
-        //var_dump($args);
+
         $retval = array();
-        
+
         $members = new BP_User_Query($args);
 
         foreach ($members->results as $member) {
@@ -207,17 +300,25 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
      */
     public function get_item($request) {
 
-        // @todo: Member singlular query logics
+        $id = (int) $request['id'];
 
-        $members = array();
+        $member = new BP_User_Query(array(
+                                        'user_ids' => array($id)
+                                        ));
+
+
+        if(empty($id) || !isset($member->results) || empty($member->results)) {
+            return new WP_Error( 'rest_member_invalid_id', __( 'Invalid resource id.', 'buddypress' ), array( 'status' => 404 ) );
+        }
 
         $retval = array(
             $this->prepare_response_for_collection(
-                $this->prepare_item_for_response($members, $request)
+                $this->prepare_item_for_response($member->results[$id], $request)
             )
         );
 
         return rest_ensure_response($retval);
+
     }
 
     /**
@@ -257,18 +358,43 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
      */
     public function prepare_item_for_response($member, $request, $is_raw = false) {
 
-        //@todo define the data structure of rest single object.
+        $data = array();
+        $schema = $this->get_item_schema();
 
-        $data = array(
-            //"id" => $member->ID,
-        );
+        if ( ! empty( $schema['properties']['id'] ) ) {
+            $data['id'] = $member->ID;
+        }
 
-        $context = !empty($request['context']) ? $request['context'] : 'view';
-        $data = $this->add_additional_fields_to_object($data, $request);
-        $data = $this->filter_response_by_context($data, $context);
+        if ( ! empty( $schema['properties']['username'] ) ) {
+            $data['username'] = $member->user_login;
+        }
+
+        if ( ! empty( $schema['properties']['name'] ) ) {
+            $data['name'] = $member->display_name;
+        }
+
+        if ( ! empty( $schema['properties']['fullname'] ) ) {
+            $data['fullname'] = $member->fullname;
+        }
+
+        if ( ! empty( $schema['properties']['registered_date'] ) ) {
+            $data['registered_date'] = $member->user_registered;
+        }
+
+        if ( ! empty( $schema['properties']['nickname'] ) ) {
+            $data['nickname'] = $member->user_nicename;
+        }
+
+        if ( ! empty( $schema['properties']['link'] ) ) {
+            $data['link'] = bp_core_get_user_domain($member->ID);
+        }
+
+        $context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
+        $data = $this->add_additional_fields_to_object( $data, $request );
+        $data = $this->filter_response_by_context( $data, $context );
 
         $response = rest_ensure_response($data);
-        $response->add_links($this->prepare_links($activity));
+        $response->add_links($this->prepare_links($member));
 
         /**
          * Filter an member value returned from the API.
@@ -288,12 +414,13 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
      * @return array Links for the given plugin.
      */
     protected function prepare_links($member) {
+
         $base = sprintf('/%s/%s/', $this->namespace, $this->rest_base);
 
         // Entity meta.
         $links = array(
             'self' => array(
-                'href' => rest_url($base . $member->id), //@todo: Need to test
+                'href' => rest_url($base . $member->ID), //@todo: Need to test
             ),
             'collection' => array(
                 'href' => rest_url($base),
