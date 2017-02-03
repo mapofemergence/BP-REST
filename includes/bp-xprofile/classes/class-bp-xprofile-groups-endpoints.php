@@ -6,10 +6,6 @@ defined( 'ABSPATH' ) || exit;
  *
  * Use /xprofile/ to find info about all groups
  * Use /xprofile/{id} to return info about a single group
-<<<<<<< HEAD
-=======
- * Use BP_REST_XProfile_Fields_Controller to get the field info for a group.
->>>>>>> dcavins/commons-working
  *
  * @since 0.1.0
  */
@@ -31,7 +27,6 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	 * @since 0.1.0
 	 */
 	public function register_routes() {
-<<<<<<< HEAD
 		// Fetch xprofile groups.
 		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
@@ -44,26 +39,11 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 		) );
 
 		// Fetch a single xprofile group.
-=======
-		// Fetch the xprofile groups overview.
-		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
-			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_groups_overview' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'                => $this->get_overview_collection_params(),
-			),
-			'schema' => array( $this, 'xprofile_groups_overview_schema' ),
-		) );
-
-		// Fetch a single xprofile group with fields & field data.
->>>>>>> dcavins/commons-working
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
-<<<<<<< HEAD
 				'args'                => $this->get_item_params(),
 
 			),
@@ -71,17 +51,6 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 		) );
 	}
 
-=======
-				'args'                => $this->get_item_collection_params(),
-
-			),
-			'schema' => array( $this, 'xprofile_group_single_schema' ),
-		) );
-	}
-
-	// Xprofile groups overview
-
->>>>>>> dcavins/commons-working
 	/**
 	 * Get the extended profile group schema, conforming to JSON Schema.
 	 *
@@ -89,17 +58,10 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	 *
 	 * @return array
 	 */
-<<<<<<< HEAD
 	public function xprofile_groups_schema() {
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'xprofile_group_single',
-=======
-	public function xprofile_groups_overview_schema() {
-		$schema = array(
-			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => 'xprofile_groups_overview',
->>>>>>> dcavins/commons-working
 			'type'       => 'object',
 			'properties' => array(
 				'id' => array(
@@ -132,15 +94,12 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 					'description' => __( 'Whether the profile field group can be deleted or not.', 'buddypress' ),
 					'type'        => 'boolean',
 				),
-<<<<<<< HEAD
 
 				'fields' => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The fields associated with this field group.', 'buddypress' ),
 					'type'        => 'array',
 				),
-=======
->>>>>>> dcavins/commons-working
 			)
 		);
 
@@ -148,21 +107,13 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	}
 
 	/**
-<<<<<<< HEAD
 	 * Get the query params for xprofile field groups.
-=======
-	 * Get the query params for collections of xprofile field groups.
->>>>>>> dcavins/commons-working
 	 *
 	 * @since 0.1.0
 	 *
 	 * @return array
 	 */
-<<<<<<< HEAD
 	public function get_collection_params() {
-=======
-	public function get_overview_collection_params() {
->>>>>>> dcavins/commons-working
 		$params                       = parent::get_collection_params();
 		$params['context']['default'] = 'view';
 
@@ -173,7 +124,6 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
-<<<<<<< HEAD
 		$params['user_id'] = array(
 			'description'       => __( 'Required if you want to load a specific user\'s data.', 'buddypress' ),
 			'type'              => 'integer',
@@ -246,24 +196,17 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
-=======
->>>>>>> dcavins/commons-working
 		return $params;
 	}
 
 	/**
-<<<<<<< HEAD
 	 * Retrieve xprofile field groups.
-=======
-	 * Retrieve groups.
->>>>>>> dcavins/commons-working
 	 *
 	 * @since 0.1.0
 	 *
 	 * @param WP_REST_Request $request
 	 * @return WP_REST_Request List of activity object data.
 	 */
-<<<<<<< HEAD
 	public function get_items( $request ) {
 
 		$args = array(
@@ -277,13 +220,6 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 			'exclude_groups'         => $request['exclude_groups'],
 			'exclude_fields'         => $request['exclude_fields'],
 			'update_meta_cache'      => $request['update_meta_cache'],
-=======
-	public function get_groups_overview( $request ) {
-
-		$args = array(
-			'hide_empty_groups' => $request['hide_empty_groups'],
-			'user_id'           => false,
->>>>>>> dcavins/commons-working
 		);
 
 		$field_groups = bp_xprofile_get_groups( $args );
@@ -291,11 +227,7 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 		$retval = array();
 		foreach ( $field_groups as $item ) {
 			$retval[] = $this->prepare_response_for_collection(
-<<<<<<< HEAD
 				$this->prepare_groups_for_response( $item, $request )
-=======
-				$this->prepare_group_overview_for_response( $item, $request )
->>>>>>> dcavins/commons-working
 			);
 		}
 
@@ -303,11 +235,7 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	}
 
 	/**
-<<<<<<< HEAD
 	 * Prepares xprofile groups for return as an object.
-=======
-	 * Prepares xprofile groups overvew data for return as an object.
->>>>>>> dcavins/commons-working
 	 *
 	 * @since 0.1.0
 	 *
@@ -316,11 +244,7 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	 * @param boolean $is_raw Optional, not used. Defaults to false.
 	 * @return WP_REST_Response
 	 */
-<<<<<<< HEAD
 	public function prepare_groups_for_response( $item, $request, $is_raw = false ) {
-=======
-	public function prepare_group_overview_for_response( $item, $request, $is_raw = false ) {
->>>>>>> dcavins/commons-working
 		$data = array(
 			'id'           => (int) $item->id,
 			'name'         => $item->name,
@@ -329,7 +253,6 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 			'can_delete'   => (bool) $item->can_delete,
 		);
 
-<<<<<<< HEAD
 		// If the fields have been requested, we populate them.
 		if ( $request['fetch_fields'] ) {
 			$data['fields'] = array();
@@ -339,8 +262,6 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 			}
 		}
 
-=======
->>>>>>> dcavins/commons-working
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$data    = $this->add_additional_fields_to_object( $data, $request );
@@ -355,93 +276,20 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 		 * @param array           $response
 		 * @param WP_REST_Request $request Request used to generate the response.
 		 */
-<<<<<<< HEAD
 		return apply_filters( 'rest_prepare_buddypress_xprofile_groups_value', $response, $request );
 	}
 
 	/**
 	 * Get the query params for single xprofile field groups.
-=======
-		return apply_filters( 'rest_prepare_buddypress_xprofile_group_overview_value', $response, $request );
-	}
-
-	// Xprofile single group retrieval, with fields & field data
-
-	/**
-	 * Get the extended profile group schema, conforming to JSON Schema.
->>>>>>> dcavins/commons-working
 	 *
 	 * @since 0.1.0
 	 *
 	 * @return array
 	 */
-<<<<<<< HEAD
 	public function get_item_params() {
 		$params                       = parent::get_collection_params();
 		$params['context']['default'] = 'view';
 
-=======
-	public function xprofile_group_single_schema() {
-		$schema = array(
-			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => 'xprofile_group_single',
-			'type'       => 'object',
-			'properties' => array(
-				'id' => array(
-					'context'     => array( 'view', 'edit' ),
-					'description' => __( 'A unique alphanumeric ID for the object.', 'buddypress' ),
-					'readonly'    => true,
-					'type'        => 'integer',
-				),
-
-				'name' => array(
-					'context'     => array( 'view', 'edit' ),
-					'description' => __( 'The name of the profile field group.', 'buddypress' ),
-					'type'        => 'string',
-				),
-
-				'description' => array(
-					'context'     => array( 'view', 'edit' ),
-					'description' => __( 'The description of the profile field group.', 'buddypress' ),
-					'type'        => 'string',
-				),
-
-				'group_order' => array(
-					'context'     => array( 'view', 'edit' ),
-					'description' => __( 'The order of the group.', 'buddypress' ),
-					'type'        => 'integer',
-				),
-
-				'can_delete' => array(
-					'context'     => array( 'view', 'edit' ),
-					'description' => __( 'Whether the profile field group can be deleted or not.', 'buddypress' ),
-					'type'        => 'boolean',
-				),
-			)
-		);
-
-		return $schema;
-	}
-
-	/**
-	 * Get the query params for collections of xprofile field groups.
-	 *
-	 * @since 0.1.0
-	 *
-	 * @return array
-	 */
-	public function get_item_collection_params() {
-		$params                       = parent::get_collection_params();
-		$params['context']['default'] = 'view';
-
-		$params['hide_empty_groups'] = array(
-			'description'       => __( 'True to hide groups that do not have any fields.', 'buddypress' ),
-			'default'           => false,
-			'type'              => 'boolean',
-			'validate_callback' => 'rest_validate_request_arg',
-		);
-
->>>>>>> dcavins/commons-working
 		$params['user_id'] = array(
 			'description'       => __( 'Required if you want to load a specific user\'s data.', 'buddypress' ),
 			'type'              => 'integer',
@@ -581,11 +429,7 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 		 * @param array           $response
 		 * @param WP_REST_Request $request Request used to generate the response.
 		 */
-<<<<<<< HEAD
 		return apply_filters( 'rest_prepare_buddypress_xprofile_group_value', $response, $request );
-=======
-		return apply_filters( 'rest_prepare_buddypress_xprofile_group_overview_value', $response, $request );
->>>>>>> dcavins/commons-working
 	}
 
 
@@ -602,11 +446,7 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	}
 
 	/**
-<<<<<<< HEAD
 	 * Check if a given request has access to xprofile group items.
-=======
-	 * Check if a given request has access to group items.
->>>>>>> dcavins/commons-working
 	 *
 	 * @since 0.1.0
 	 *
@@ -614,22 +454,7 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool
 	 */
 	public function get_items_permissions_check( $request ) {
-<<<<<<< HEAD
 		// @TODO: Much of this is handled by the visibility logic.
-=======
-		// Only bp_moderators and logged in users (viewing their own groups) can see hidden groups.
-		// if ( ! empty( $request['show_hidden'] ) &&
-		// 		(   ! bp_current_user_can( 'bp_moderate' ) &&
-		// 		 	! ( ! empty( $request['user_id'] ) && $request['user_id'] == bp_loggedin_user_id() )
-		// 	   	)
-		// 	) {
-		// 	return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view hidden groups.'), array( 'status' => rest_authorization_required_code() ) );
-		// 	}
-
-		// if ( 'edit' === $request['context'] && ! bp_current_user_can( 'bp_moderate' ) ) {
-		// 	return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
-		// }
->>>>>>> dcavins/commons-working
 
 		return true;
 	}
@@ -639,11 +464,7 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-<<<<<<< HEAD
 	 * @param array $item Xprofile group.
-=======
-	 * @param array $item Group.
->>>>>>> dcavins/commons-working
 	 * @return array Links for the given plugin.
 	 */
 	protected function prepare_links( $item ) {
@@ -663,28 +484,6 @@ class BP_REST_XProfile_Groups_Controller extends WP_REST_Controller {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
-	 * Convert the input date to RFC3339 format.
-	 *
-	 * @param string $date_gmt
-	 * @param string|null $date Optional. Date object.
-	 * @return string|null ISO8601/RFC3339 formatted datetime.
-	 */
-	protected function prepare_date_response( $date_gmt, $date = null ) {
-		if ( isset( $date ) ) {
-			return mysql_to_rfc3339( $date );
-		}
-
-		if ( $date_gmt === '0000-00-00 00:00:00' ) {
-			return null;
-		}
-
-		return mysql_to_rfc3339( $date_gmt );
-	}
-
-	/**
->>>>>>> dcavins/commons-working
 	 * Clean up member_type input.
 	 *
 	 * @param string $value Comma-separated list of group types.

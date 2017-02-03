@@ -2,17 +2,9 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
-<<<<<<< HEAD
  * Endpoints to retrieve information about profile fields.
  *
  * Use /xprofile/fields/{id} to return info about a single field
-=======
- * Endpoints to retrieve information about profile field groups.
- *
- * Use /xprofile/ to find info about all groups
- * Use /xprofile/{id} to return info about a single group
- * Use BP_REST_XProfile_Fields_Controller to get the field info for a group.
->>>>>>> dcavins/commons-working
  *
  * @since 0.1.0
  */
@@ -46,11 +38,7 @@ class BP_REST_XProfile_Fields_Controller extends WP_REST_Controller {
 		// 	'schema' => array( $this, 'get_item_schema' ),
 		// ) );
 
-<<<<<<< HEAD
 		// Fetch a single xprofile field with field data.
-=======
-		// Fetch a single xprofile group with fields & field data.
->>>>>>> dcavins/commons-working
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
@@ -215,17 +203,12 @@ class BP_REST_XProfile_Fields_Controller extends WP_REST_Controller {
 
 		$field = xprofile_get_field( $profile_field_id );
 
-<<<<<<< HEAD
 		// @TODO: Visibility doesn't protect field values in this function.
 		if ( ! empty( $request['user_id'] ) ) {
 			$field->data = new stdClass;
 			$field->data->value = xprofile_get_field_data( $profile_field_id, $request['user_id'] );
 			// Set 'fetch_field_data' to true so that the data is included in the response.
 			$request['fetch_field_data'] = true;
-=======
-		if ( ! empty( $request['user_id'] ) ) {
-			$field->data->value = xprofile_get_field_data( $profile_field_id, $request['user_id'] );
->>>>>>> dcavins/commons-working
 		}
 
 		if ( empty( $profile_field_id ) || empty( $field->id ) ) {
@@ -330,22 +313,7 @@ class BP_REST_XProfile_Fields_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool
 	 */
 	public function get_items_permissions_check( $request ) {
-<<<<<<< HEAD
 		// @TODO: Much of this is handled by the visibility logic.
-=======
-		// Only bp_moderators and logged in users (viewing their own groups) can see hidden groups.
-		// if ( ! empty( $request['show_hidden'] ) &&
-		// 		(   ! bp_current_user_can( 'bp_moderate' ) &&
-		// 		 	! ( ! empty( $request['user_id'] ) && $request['user_id'] == bp_loggedin_user_id() )
-		// 	   	)
-		// 	) {
-		// 	return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view hidden groups.'), array( 'status' => rest_authorization_required_code() ) );
-		// 	}
-
-		// if ( 'edit' === $request['context'] && ! bp_current_user_can( 'bp_moderate' ) ) {
-		// 	return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
-		// }
->>>>>>> dcavins/commons-working
 
 		return true;
 	}
@@ -355,11 +323,7 @@ class BP_REST_XProfile_Fields_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-<<<<<<< HEAD
 	 * @param array $item Field.
-=======
-	 * @param array $item Group.
->>>>>>> dcavins/commons-working
 	 * @return array Links for the given plugin.
 	 */
 	protected function prepare_links( $item ) {
