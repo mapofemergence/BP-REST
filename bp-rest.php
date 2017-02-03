@@ -49,14 +49,15 @@ function bp_rest_api_endpoints() {
 		$controller->register_routes();
 	}
 
-	if ( bp_is_active( 'groups' ) ) {
-		require_once( dirname( __FILE__ ) . '/includes/bp-groups/classes/class-bp-groups-endpoints.php' );
-		$controller = new BP_REST_Groups_Controller();
+	if ( bp_is_active( 'xprofile' ) ) {
+		require_once( dirname( __FILE__ ) . '/includes/bp-xprofile/classes/class-bp-xprofile-groups-endpoints.php' );
+		$controller = new BP_REST_XProfile_Groups_Controller();
+		$controller->register_routes();
+
+		require_once( dirname( __FILE__ ) . '/includes/bp-xprofile/classes/class-bp-xprofile-fields-endpoints.php' );
+		$controller = new BP_REST_XProfile_Fields_Controller();
 		$controller->register_routes();
 	}
-
-	// Member response filters
-	require_once( dirname( __FILE__ ) . '/includes/bp-members/bp-members-filters.php' );
 
 }
 add_action( 'bp_rest_api_init', 'bp_rest_api_endpoints' );
