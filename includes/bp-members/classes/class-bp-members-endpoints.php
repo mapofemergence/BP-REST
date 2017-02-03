@@ -14,7 +14,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	protected $member_type;
 
 	public function __construct( $member_type = false ) {
-		$this->namespace = 'buddypress/v1';
+		$this->namespace = bp_rest_namespace() . '/' . bp_rest_version();
 		$this->rest_base = buddypress()->members->id;
 
 		if ( $member_type ) {
@@ -72,16 +72,16 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 			 * Redirect to WP Rest User Endpoint.
 			 */
 			// array(
-			// 	'methods' => WP_REST_Server::DELETABLE,
-			// 	'callback' => array( 'WP_REST_Users_Controller', 'delete_item' ),
-			// 	'permission_callback' => array( 'WP_REST_Users_Controller', 'delete_item_permissions_check' ),
-			// 	'args' => array(
-			// 		'force'    => array(
-			// 			'default'     => false,
-			// 			'description' => __( 'Required to be true, as resource does not support trashing.' ),
-			// 		),
-			// 		'reassign' => array(),
-			// 	),
+			// 'methods' => WP_REST_Server::DELETABLE,
+			// 'callback' => array( 'WP_REST_Users_Controller', 'delete_item' ),
+			// 'permission_callback' => array( 'WP_REST_Users_Controller', 'delete_item_permissions_check' ),
+			// 'args' => array(
+			// 'force'    => array(
+			// 'default'     => false,
+			// 'description' => __( 'Required to be true, as resource does not support trashing.' ),
+			// ),
+			// 'reassign' => array(),
+			// ),
 			// ),
 			'schema' => array( 'WP_REST_Users_Controller', 'get_public_item_schema' ),
 		) );
@@ -244,11 +244,10 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param WP_REST_Request $request
-	 * @return WP_REST_Request List of activity object data.
+	 * @param array $request WP_REST_Request.
+	 * @return array WP_REST_Request List of activity object data.
 	 */
 	public function get_items( $request ) {
-		global $bp, $wpdb;
 
 		$args = array(
 			'type' => $request['type'],
@@ -271,7 +270,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 			$args['include'] = $request['include'];
 		}
 
-		if ( $this->member_type != '' ) {
+		if ( '' !== $this->member_type ) {
 			$args['member_type'] = $this->member_type;
 		}
 
@@ -299,15 +298,15 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param WP_REST_Request $request
+	 * @param array $request WP_REST_Request.
 	 * @return WP_REST_Request|WP_Error Plugin object data on success, WP_Error otherwise.
 	 */
 	public function get_item( $request ) {
 
 		$id = (int) $request['id'];
 
-		$member = new BP_User_Query(array(
-										'user_ids' => array( $id ),
+		$member = new BP_User_Query( array(
+			'user_ids' => array( $id ),
 		));
 
 		if ( empty( $id ) || ! isset( $member->results ) || empty( $member->results ) ) {
@@ -354,9 +353,9 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param stdClass        $activity Activity data.
-	 * @param WP_REST_Request $request
-	 * @param boolean         $is_raw Optional, not used. Defaults to false.
+	 * @param stdClass $activity Activity data.
+	 * @param array    $request WP_REST_Request.
+	 * @param boolean  $is_raw Optional, not used. Defaults to false.
 	 * @return WP_REST_Response
 	 */
 	public function prepare_item_for_response( $member, $request, $is_raw = false ) {

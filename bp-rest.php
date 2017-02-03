@@ -33,27 +33,59 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * BuddyPress rest api namespace.
+ *
+ * @since 0.1.0
+ * @return string
+ */
+function bp_rest_namespace() {
+
+	/**
+	 * Filters api namespace.
+	 *
+	 * @since 0.1.0
+	 */
+	return apply_filters( 'bp_rest_namespace', 'buddypress' );
+}
+
+/**
+ * BuddyPress rest api version.
+ *
+ * @since 0.1.0
+ * @return string
+ */
+function bp_rest_version() {
+	return 'v1';
+}
+
+/**
  * Register BuddyPress endpoints.
  *
  * @since 0.1.0
+ * @return void
  */
 function bp_rest_api_endpoints() {
-	// Requires https://wordpress.org/plugins/rest-api/
+	// Requires https://wordpress.org/plugins/rest-api/.
 	if ( ! class_exists( 'WP_REST_Controller' ) ) {
 		return;
 	}
 
-    if ( bp_is_active( 'activity' ) ) {
-        require_once( dirname( __FILE__ ) . '/includes/bp-activity/classes/class-bp-activity-endpoints.php' );
-        $controller = new BP_REST_Activity_Controller();
-        $controller->register_routes();
-    }
+	require_once( dirname( __FILE__ ) . '/includes/bp-core/classes/class-bp-core-endpoints.php' );
+	$controller = new BP_REST_Core_Controller();
+	$controller->register_routes();
+
+	if ( bp_is_active( 'activity' ) ) {
+		require_once( dirname( __FILE__ ) . '/includes/bp-activity/classes/class-bp-activity-endpoints.php' );
+		$controller = new BP_REST_Activity_Controller();
+		$controller->register_routes();
+	}
 
 	if ( bp_is_active( 'members' ) ) {
 		require_once( dirname( __FILE__ ) . '/includes/bp-members/classes/class-bp-members-endpoints.php' );
-        // Register General Member Type Endpoint
 		$controller = new BP_REST_Members_Controller();
 		$controller->register_routes();
+
+		require_once( dirname( __FILE__ ) . '/includes/bp-members/bp-members-filters.php' );
 	}
 
 	if ( bp_is_active( 'groups' ) ) {
@@ -71,9 +103,6 @@ function bp_rest_api_endpoints() {
 		$controller = new BP_REST_XProfile_Fields_Controller();
 		$controller->register_routes();
 	}
-
-	// Member response filters
-	require_once( dirname( __FILE__ ) . '/includes/bp-members/bp-members-filters.php' );
 
 }
 add_action( 'bp_rest_api_init', 'bp_rest_api_endpoints' );
