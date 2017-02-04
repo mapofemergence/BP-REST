@@ -364,7 +364,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 		// TODO: handle private activities etc
-		return true;
+		return apply_filters( 'bp_rest_activity_items_premission', true, $request );
 	}
 
 	/**
