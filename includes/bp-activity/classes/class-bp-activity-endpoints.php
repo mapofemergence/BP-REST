@@ -298,7 +298,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 
 		// Override certain options for security.
 		// @TODO: Verify and confirm this show_hidden logic, and check core for other edge cases.
-		if ( $request['component'] === 'groups' &&
+		if ( 'groups' === $request['component']  &&
 			(
 				groups_is_user_member( get_current_user_id(), $request['primary_id'] ) ||
 				bp_current_user_can( 'bp_moderate' )
