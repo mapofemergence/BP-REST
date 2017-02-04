@@ -382,10 +382,10 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			'id'                    => $activity->id,
 			'link'                  => $activity->primary_link,
 			'parent'                => 'activity_comment' === $activity->type ? $activity->item_id : 0,
-			'prime_association'     => $activity->item_id,
-			'secondary_association' => $activity->secondary_item_id,
+			'item_id'     			=> $activity->item_id,
+			'secondary_item_id' 	=> $activity->secondary_item_id,
 			'status'                => $activity->is_spam ? 'spam' : 'published',
-			'title'                 => $activity->action,
+			'action'                 => $activity->action,
 			'type'                  => $activity->type,
 		);
 
