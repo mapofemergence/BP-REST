@@ -241,7 +241,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
-		$params['type'] = array(
+		$params['action'] = array(
 			'description'       => __( 'Limit result set to items with a specific activity type.', 'buddypress' ),
 			'type'              => 'string',
 			'enum'              => array_keys( bp_activity_get_types() ),
@@ -270,26 +270,14 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		$request = $request->get_params();
+		$args = $request->get_params();
 
-		if ( isset( $request['after'] ) ) {
-			$args['since'] = $request['after'];
+		if ( isset( $args['component'] ) ) {
+			$args['filter'] = array( 'object' => $args['component'] );
 		}
 
-		if ( isset( $request['component'] ) ) {
-			if ( ! isset( $args['filter'] ) ) {
-				$args['filter'] = array( 'object' => $request['component'] );
-			} else {
-				$args['filter']['object'] = $request['component'];
-			}
-		}
-
-		if ( isset( $request['type'] ) ) {
-			if ( ! isset( $args['filter'] ) ) {
-				$args['filter'] = array( 'action' => $request['type'] );
-			} else {
-				$args['filter']['action'] = $request['type'];
-			}
+		if ( isset( $request['action'] ) ) {
+			$args['filter'] = array( 'action' => $request['action'] );
 		}
 
 		if ( $args['in'] ) {
@@ -298,9 +286,9 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 
 		// Override certain options for security.
 		// @TODO: Verify and confirm this show_hidden logic, and check core for other edge cases.
-		if ( 'groups' === $request['component']  &&
+		if ( 'groups' === $args['component']  &&
 			(
-				groups_is_user_member( get_current_user_id(), $request['primary_id'] ) ||
+				groups_is_user_member( get_current_user_id(), $args['primary_id'] ) ||
 				bp_current_user_can( 'bp_moderate' )
 			)
 		) {
@@ -308,7 +296,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 		}
 
 		$retval     = array();
-		$activities = bp_activity_get( $request );
+		$activities = bp_activity_get( $args );
 
 		foreach ( $activities['activities'] as $activity ) {
 			$retval[] = $this->prepare_response_for_collection(
