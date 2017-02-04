@@ -407,7 +407,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 		 * @param array           $response
 		 * @param WP_REST_Request $request Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_buddypress_activity_value', $response, $request );
+		return apply_filters( 'bp_rest_prepare_activity_value', $response, $request );
 	}
 
 	/**
@@ -452,6 +452,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @return string|null ISO8601/RFC3339 formatted datetime.
 	 */
 	protected function prepare_date_response( $date_gmt, $date = null ) {
+
 		if ( isset( $date ) ) {
 			return mysql_to_rfc3339( $date );
 		}
