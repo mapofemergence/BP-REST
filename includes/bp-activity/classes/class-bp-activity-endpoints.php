@@ -121,6 +121,12 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 				),
 
 				'date' => array(
+					'description' => __( "The human readable date time since item posted", 'buddypress' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+
+				'timestamp' => array(
 					'description' => __( "The date the object was published, in the site's timezone.", 'buddypress' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
