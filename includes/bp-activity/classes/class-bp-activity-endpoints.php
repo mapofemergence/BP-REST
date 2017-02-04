@@ -330,12 +330,12 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		// TODO: query logic. and permissions. and other parameters that might need to be set. etc
 		$activity = bp_activity_get( array(
-			'in' => (int) $request['id'],
+				'in' => (int) $request['id'],
 		) );
 
-		$retval = array( $this->prepare_response_for_collection(
-			$this->prepare_item_for_response( $activity['activities'][0], $request )
-		)
+			$retval = array( $this->prepare_response_for_collection(
+				$this->prepare_item_for_response( $activity['activities'][0], $request )
+			)
 		);
 
 		return rest_ensure_response( $retval );
@@ -378,6 +378,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function prepare_item_for_response( $activity, $request, $is_raw = false ) {
+
 		$data = array(
 			'author'                => $activity->user_id,
 			'component'             => $activity->component,
@@ -385,7 +386,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			'date'                  => $this->prepare_date_response( $activity->date_recorded ),
 			'id'                    => $activity->id,
 			'link'                  => $activity->primary_link,
-			'parent'                => $activity->type === 'activity_comment' ? $activity->item_id : 0,
+			'parent'                => 'activity_comment' === $activity->type ? $activity->item_id : 0,
 			'prime_association'     => $activity->item_id,
 			'secondary_association' => $activity->secondary_item_id,
 			'status'                => $activity->is_spam ? 'spam' : 'published',
@@ -418,6 +419,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @return array Links for the given plugin.
 	 */
 	protected function prepare_links( $activity ) {
+
 		$base = sprintf( '/%s/%s/', $this->namespace, $this->rest_base );
 
 		// Entity meta.
@@ -433,7 +435,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( $activity->type === 'activity_comment' ) {
+		if ( 'activity_comment' === $activity->type ) {
 			$links['up'] = array(
 				'href' => rest_url( $base . $activity->item_id ),
 			);
@@ -454,7 +456,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			return mysql_to_rfc3339( $date );
 		}
 
-		if ( $date_gmt === '0000-00-00 00:00:00' ) {
+		if ( '0000-00-00 00:00:00' === $date_gmt ) {
 			return null;
 		}
 
