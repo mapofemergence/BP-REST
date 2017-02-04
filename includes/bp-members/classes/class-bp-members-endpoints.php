@@ -11,9 +11,15 @@ defined( 'ABSPATH' ) || exit;
  */
 class BP_REST_Members_Controller extends WP_REST_Controller {
 
+	/**
+	 * Current member type.
+	 *
+	 * @var string
+	 */
 	protected $member_type;
 
 	public function __construct( $member_type = false ) {
+
 		$this->namespace = bp_rest_namespace() . '/' . bp_rest_version();
 		$this->rest_base = buddypress()->members->id;
 
@@ -34,7 +40,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		register_rest_route($this->namespace, '/' . $this->rest_base, array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods' => WP_REST_Server::READABLE,
 				'callback' => array( $this, 'get_items' ),
@@ -52,11 +58,11 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
-				'methods'         => WP_REST_Server::READABLE,
-				'callback'        => array( $this, 'get_item' ),
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
-				'args'            => array(
-					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+				'args' => array(
+					'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
 			),
 
@@ -109,7 +115,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					'readonly' => true,
 					'type' => 'integer',
 				),
-				'username'    => array(
+				'username'      => array(
 					'description' => __( 'Login name for the resource.', 'buddypress' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'edit', 'view' ),
@@ -118,7 +124,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'sanitize_user',
 					),
 				),
-				'name'        => array(
+				'name'          => array(
 					'description' => __( 'Display name for the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
@@ -177,6 +183,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_collection_params() {
+
 		$params = parent::get_collection_params();
 		$params['context']['default'] = 'view';
 
@@ -249,41 +256,28 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		$args = array(
-			'type' => $request['type'],
-			'user_id' => false,
-			'search_terms' => $request['search'],
-			'member_type' => '',
-			'per_page' => $request['per_page'],
-			'page' => $request['page'],
-			'populate_extras' => true,
-			'meta_key' => false, // Limit to users who have this piece of usermeta.
-			'meta_value' => false,
-			'count_total' => 'count_query',
-		);
+		$args = $request->get_params();
 
-		if ( ! empty( $request['exclude'] ) ) {
-			$args['exclude'] = $request['exclude'];
+		if ( empty( $args['exclude'] ) ) {
+			unset( $args['exclude'] );
 		}
 
-		if ( ! empty( $request['include'] ) ) {
-			$args['include'] = $request['include'];
+		if ( empty( $args['include'] ) ) {
+			unset( $args['include'] );
 		}
 
-		if ( '' !== $this->member_type ) {
+		if ( null !== $this->member_type ) {
 			$args['member_type'] = $this->member_type;
 		}
 
-		if ( ! empty( $request['user_id'] ) ) {
-			$args['user_id'] = $request['user_id'];
-		}
-
 		$retval = array();
-
 		$members = new BP_User_Query( $args );
 
-		foreach ( $members->results as $member ) {
+		if ( ! isset( $members->results ) || empty( $members->results ) ) {
+			return new WP_Error( 'rest_member_no_results', __( 'No results.', 'buddypress' ), array( 'status' => 404 ) );
+		}
 
+		foreach ( $members->results as $member ) {
 			// @todo: Passing the member object into prepare response
 			$retval[] = $this->prepare_response_for_collection(
 				$this->prepare_item_for_response( $member, $request )
