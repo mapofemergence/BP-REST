@@ -371,7 +371,8 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			'author'                => $activity->user_id,
 			'component'             => $activity->component,
 			'content'               => $activity->content,
-			'date'                  => $this->prepare_date_response( $activity->date_recorded ),
+			'timestamp'             => $activity->date_recorded,
+			'date'                  => bp_core_time_since( $activity->date_recorded ),
 			'id'                    => $activity->id,
 			'link'                  => $activity->primary_link,
 			'parent'                => 'activity_comment' === $activity->type ? $activity->item_id : 0,
@@ -432,23 +433,4 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 		return $links;
 	}
 
-	/**
-	 * Convert the input date to RFC3339 format.
-	 *
-	 * @param string      $date_gmt
-	 * @param string|null $date Optional. Date object.
-	 * @return string|null ISO8601/RFC3339 formatted datetime.
-	 */
-	protected function prepare_date_response( $date_gmt, $date = null ) {
-
-		if ( isset( $date ) ) {
-			return mysql_to_rfc3339( $date );
-		}
-
-		if ( '0000-00-00 00:00:00' === $date_gmt ) {
-			return null;
-		}
-
-		return mysql_to_rfc3339( $date_gmt );
-	}
 }
