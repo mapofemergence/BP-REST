@@ -278,12 +278,29 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 
 		$args = $request->get_params();
 
-		if ( isset( $args['component'] ) ) {
-			$args['filter'] = array( 'object' => $args['component'] );
+		if ( isset( $args['object'] ) ) {
+			$args['filter']['object'] = $args['object'];
+			unset( $request['object'] );
 		}
 
-		if ( isset( $request['action'] ) ) {
-			$args['filter'] = array( 'action' => $request['action'] );
+		if ( isset( $args['action'] ) ) {
+			$args['filter']['action'] = $args['action'];
+			unset( $args['action'] );
+		}
+
+		if ( isset( $args['user_id'] ) ) {
+			$args['filter']['user_id'] = $args['user_id'];
+			unset( $args['user_id'] );
+		}
+
+		if ( isset( $args['primary_id'] ) ) {
+			$args['filter']['primary_id'] = $args['primary_id'];
+			unset( $args['primary_id'] );
+		}
+
+		if ( isset( $args['secondary_id'] ) ) {
+			$args['filter']['secondary_id'] = $args['secondary_id'];
+			unset( $args['secondary_id'] );
 		}
 
 		if ( $args['in'] ) {
@@ -382,10 +399,10 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			'id'                    => $activity->id,
 			'link'                  => $activity->primary_link,
 			'parent'                => 'activity_comment' === $activity->type ? $activity->item_id : 0,
-			'item_id'     			=> $activity->item_id,
-			'secondary_item_id' 	=> $activity->secondary_item_id,
+			'primary_id'     		=> $activity->item_id,
+			'secondary_id' 			=> $activity->secondary_item_id,
 			'status'                => $activity->is_spam ? 'spam' : 'published',
-			'action'                 => $activity->action,
+			'action'                => $activity->action,
 			'type'                  => $activity->type,
 		);
 
