@@ -121,7 +121,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 				),
 
 				'date' => array(
-					'description' => __( "The human readable date time since item posted", 'buddypress' ),
+					'description' => __( 'The human readable date time since item posted', 'buddypress' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
@@ -383,9 +383,9 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param stdClass        $activity Activity data.
-	 * @param WP_REST_Request $request
-	 * @param boolean         $is_raw Optional, not used. Defaults to false.
+	 * @param stdClass $activity Activity data.
+	 * @param array    $request WP_REST_Request.
+	 * @param boolean  $is_raw Optional, not used. Defaults to false.
 	 * @return WP_REST_Response
 	 */
 	public function prepare_item_for_response( $activity, $request, $is_raw = false ) {
@@ -419,7 +419,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 		 * @param array           $response
 		 * @param WP_REST_Request $request Request used to generate the response.
 		 */
-		return apply_filters( 'bp_rest_prepare_activity_value', $response, $request );
+		return apply_filters( 'bp_rest_prepare_activity_item', $response, $request );
 	}
 
 	/**
