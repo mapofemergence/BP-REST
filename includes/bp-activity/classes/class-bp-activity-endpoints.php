@@ -277,30 +277,12 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 
 		$args = $request->get_params();
+		$filters = array( 'object', 'action', 'user_id', 'primary_id', 'secondary_id' );
 
-		if ( isset( $args['object'] ) ) {
-			$args['filter']['object'] = $args['object'];
-			unset( $request['object'] );
-		}
-
-		if ( isset( $args['action'] ) ) {
-			$args['filter']['action'] = $args['action'];
-			unset( $args['action'] );
-		}
-
-		if ( isset( $args['user_id'] ) ) {
-			$args['filter']['user_id'] = $args['user_id'];
-			unset( $args['user_id'] );
-		}
-
-		if ( isset( $args['primary_id'] ) ) {
-			$args['filter']['primary_id'] = $args['primary_id'];
-			unset( $args['primary_id'] );
-		}
-
-		if ( isset( $args['secondary_id'] ) ) {
-			$args['filter']['secondary_id'] = $args['secondary_id'];
-			unset( $args['secondary_id'] );
+		foreach ( $filters as $filter ) {
+			if ( isset( $args[ $filter ] ) ) {
+				$args['filter'][ $filter ] = $args[ $filter ];
+			}
 		}
 
 		if ( $args['in'] ) {
@@ -323,7 +305,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 
 		foreach ( $activities['activities'] as $activity ) {
 			$retval[] = $this->prepare_response_for_collection(
-				$this->prepare_item_for_response( $activity, $request )
+				$this->prepare_item_for_response( $activity, $args )
 			);
 		}
 
@@ -344,9 +326,10 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 				'in' => (int) $request['id'],
 		) );
 
-			$retval = array( $this->prepare_response_for_collection(
+		$retval = array(
+			$this->prepare_response_for_collection(
 				$this->prepare_item_for_response( $activity['activities'][0], $request )
-			)
+			),
 		);
 
 		return rest_ensure_response( $retval );
