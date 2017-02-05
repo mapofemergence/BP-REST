@@ -14,7 +14,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @since 0.1.0
 	 */
 	public function __construct() {
-		$this->namespace = 'buddypress/v1';
+		$this->namespace = bp_rest_namespace() . '/' . bp_rest_version();
 		$this->rest_base = buddypress()->activity->id;
 	}
 
@@ -55,6 +55,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'activity',
@@ -120,6 +121,12 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 				),
 
 				'date' => array(
+					'description' => __( 'The human readable date time since item posted', 'buddypress' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+
+				'timestamp' => array(
 					'description' => __( "The date the object was published, in the site's timezone.", 'buddypress' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
@@ -138,7 +145,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
 				),
-			)
+			),
 		);
 
 		return $schema;
@@ -152,7 +159,8 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_collection_params() {
-		$params                       = parent::get_collection_params();
+
+		$params = parent::get_collection_params();
 		$params['context']['default'] = 'view';
 
 		$params['exclude'] = array(
@@ -239,7 +247,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
-		$params['type'] = array(
+		$params['action'] = array(
 			'description'       => __( 'Limit result set to items with a specific activity type.', 'buddypress' ),
 			'type'              => 'string',
 			'enum'              => array_keys( bp_activity_get_types() ),
@@ -267,42 +275,13 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Request List of activity object data.
 	 */
 	public function get_items( $request ) {
-		$args = array(
-			'exclude'           => $request['exclude'],
-			'in'                => $request['include'],
-			'page'              => $request['page'],
-			'per_page'          => $request['per_page'],
-			'primary_id'        => $request['primary_id'],
-			'search_terms'      => $request['search'],
-			'secondary_id'      => $request['secondary_id'],
-			'sort'              => $request['order'],
-			'spam'              => $request['status'] === 'spam' ? 'spam_only' : 'ham_only',
-			'user_id'           => $request['author'],
 
-			// Set optimised defaults.
-			'count_total'       => true,
-			'fields'            => 'all',
-			'show_hidden'       => false,
-			'update_meta_cache' => true,
-		);
+		$args = $request->get_params();
+		$filters = array( 'object', 'action', 'user_id', 'primary_id', 'secondary_id' );
 
-		if ( isset( $request['after'] ) ) {
-			$args['since'] = $request['after'];
-		}
-
-		if ( isset( $request['component'] ) ) {
-			if ( ! isset( $args['filter'] ) ) {
-				$args['filter'] = array( 'object' => $request['component'] );
-			} else {
-				$args['filter']['object'] = $request['component'];
-			}
-		}
-
-		if ( isset( $request['type'] ) ) {
-			if ( ! isset( $args['filter'] ) ) {
-				$args['filter'] = array( 'action' => $request['type'] );
-			} else {
-				$args['filter']['action'] = $request['type'];
+		foreach ( $filters as $filter ) {
+			if ( isset( $args[ $filter ] ) ) {
+				$args['filter'][ $filter ] = $args[ $filter ];
 			}
 		}
 
@@ -312,22 +291,21 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 
 		// Override certain options for security.
 		// @TODO: Verify and confirm this show_hidden logic, and check core for other edge cases.
-		if ( $request['component'] === 'groups' &&
+		if ( 'groups' === $args['component']  &&
 			(
-				groups_is_user_member( get_current_user_id(), $request['primary_id'] ) ||
+				groups_is_user_member( get_current_user_id(), $args['primary_id'] ) ||
 				bp_current_user_can( 'bp_moderate' )
 			)
 		) {
 			$args['show_hidden'] = true;
 		}
 
-
 		$retval     = array();
 		$activities = bp_activity_get( $args );
 
 		foreach ( $activities['activities'] as $activity ) {
 			$retval[] = $this->prepare_response_for_collection(
-				$this->prepare_item_for_response( $activity, $request )
+				$this->prepare_item_for_response( $activity, $args )
 			);
 		}
 
@@ -345,12 +323,14 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		// TODO: query logic. and permissions. and other parameters that might need to be set. etc
 		$activity = bp_activity_get( array(
-			'in' => (int) $request['id'],
+				'in' => (int) $request['id'],
 		) );
 
-		$retval = array( $this->prepare_response_for_collection(
-			$this->prepare_item_for_response( $activity['activities'][0], $request )
-		) );
+		$retval = array(
+			$this->prepare_response_for_collection(
+				$this->prepare_item_for_response( $activity['activities'][0], $request )
+			),
+		);
 
 		return rest_ensure_response( $retval );
 
@@ -378,7 +358,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 		// TODO: handle private activities etc
-		return true;
+		return apply_filters( 'bp_rest_activity_items_premission', true, $request );
 	}
 
 	/**
@@ -387,23 +367,25 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @since 0.1.0
 	 *
 	 * @param stdClass $activity Activity data.
-	 * @param WP_REST_Request $request
-	 * @param boolean $is_raw Optional, not used. Defaults to false.
+	 * @param array    $request WP_REST_Request.
+	 * @param boolean  $is_raw Optional, not used. Defaults to false.
 	 * @return WP_REST_Response
 	 */
 	public function prepare_item_for_response( $activity, $request, $is_raw = false ) {
+
 		$data = array(
 			'author'                => $activity->user_id,
 			'component'             => $activity->component,
 			'content'               => $activity->content,
-			'date'                  => $this->prepare_date_response( $activity->date_recorded ),
+			'timestamp'             => $activity->date_recorded,
+			'date'                  => bp_core_time_since( $activity->date_recorded ),
 			'id'                    => $activity->id,
 			'link'                  => $activity->primary_link,
-			'parent'                => $activity->type === 'activity_comment' ? $activity->item_id : 0,
-			'prime_association'     => $activity->item_id,
-			'secondary_association' => $activity->secondary_item_id,
+			'parent'                => 'activity_comment' === $activity->type ? $activity->item_id : 0,
+			'primary_id'     		=> $activity->item_id,
+			'secondary_id' 			=> $activity->secondary_item_id,
 			'status'                => $activity->is_spam ? 'spam' : 'published',
-			'title'                 => $activity->action,
+			'action'                => $activity->action,
 			'type'                  => $activity->type,
 		);
 
@@ -420,7 +402,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 		 * @param array           $response
 		 * @param WP_REST_Request $request Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_buddypress_activity_value', $response, $request );
+		return apply_filters( 'bp_rest_prepare_activity_item', $response, $request );
 	}
 
 	/**
@@ -432,6 +414,7 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 	 * @return array Links for the given plugin.
 	 */
 	protected function prepare_links( $activity ) {
+
 		$base = sprintf( '/%s/%s/', $this->namespace, $this->rest_base );
 
 		// Entity meta.
@@ -444,10 +427,10 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 			),
 			'author' => array(
 				'href' => rest_url( '/wp/v2/users/' . $activity->user_id ),
-			)
+			),
 		);
 
-		if ( $activity->type === 'activity_comment' ) {
+		if ( 'activity_comment' === $activity->type ) {
 			$links['up'] = array(
 				'href' => rest_url( $base . $activity->item_id ),
 			);
@@ -456,22 +439,4 @@ class BP_REST_Activity_Controller extends WP_REST_Controller {
 		return $links;
 	}
 
-	/**
-	 * Convert the input date to RFC3339 format.
-	 *
-	 * @param string $date_gmt
-	 * @param string|null $date Optional. Date object.
-	 * @return string|null ISO8601/RFC3339 formatted datetime.
-	 */
-	protected function prepare_date_response( $date_gmt, $date = null ) {
-		if ( isset( $date ) ) {
-			return mysql_to_rfc3339( $date );
-		}
-
-		if ( $date_gmt === '0000-00-00 00:00:00' ) {
-			return null;
-		}
-
-		return mysql_to_rfc3339( $date_gmt );
-	}
 }
